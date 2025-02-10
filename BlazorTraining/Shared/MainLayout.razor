@@ -1,53 +1,84 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
 
-<MApp Id="app">
-    <MAppBar App>
-        <MAppBarNavIcon @onclick="() => _drawer = !_drawer"></MAppBarNavIcon>
-        <MToolbarTitle>BlazorTraining</MToolbarTitle>
-        <MSpacer></MSpacer>
-        <MButton Text Color="primary" Target="_blank" Href="https://docs.masastack.com/blazor/introduction/why-masa-blazor">About</MButton>
+<PageTitle>Blazor练习项目</PageTitle>
+
+<MApp Id="app" Class="*:font-sans">
+    <MAppBar App Elevation="0" Class="bg-white border-b border-solid border-gray-200 [&:not(.app--sized)]:left-[300px!important]">
+        @if (!string.IsNullOrEmpty(_barIcon))
+        {
+            <MIcon Class="text-2xl mr-2 font-bold text-gray-800">@_barIcon</MIcon>
+        }
+        <MToolbarTitle>@_barTitle</MToolbarTitle>
     </MAppBar>
 
-    <MNavigationDrawer App @bind-Value="_drawer">
+    <MNavigationDrawer App Permanent Width="300" Floating Class="border-r border-solid border-gray-200 p-4">
+        <div class="text-xl text-center font-bold py-4">@NavTitle</div>
         <MList Nav Routable>
-            <MListItem Href="/" ActiveClass="primary--text">
-                <MListItemIcon>
-                    <MIcon>mdi-home</MIcon>
-                </MListItemIcon>
-                <MListItemContent>
-                    <MListItemTitle>Home</MListItemTitle>
-                </MListItemContent>
-            </MListItem>
-            <MListItem Href="/counter" ActiveClass="primary--text">
-                <MListItemIcon>
-                    <MIcon>mdi-plus</MIcon>
-                </MListItemIcon>
-                <MListItemContent>
-                    <MListItemTitle>Counter</MListItemTitle>
-                </MListItemContent>
-            </MListItem>
-            <MListItem Href="/fetchdata" ActiveClass="primary--text">
-                <MListItemIcon>
-                    <MIcon>mdi-list-box</MIcon>
-                </MListItemIcon>
-                <MListItemContent>
-                    <MListItemTitle>Fetch data</MListItemTitle>
-                </MListItemContent>
-            </MListItem>
+            @foreach (var item in _routePathDefinitions)
+            {
+                <MListItem Href="@item.Path" ActiveClass="primary--text" Exact>
+                    @if (!string.IsNullOrEmpty(item.Icon))
+                    {
+                        <MIcon Class="text-xl mr-2">@item.Icon</MIcon>
+                    }
+                    <MListItemContent>
+                        <MListItemTitle>@item.Name</MListItemTitle>
+                    </MListItemContent>
+                </MListItem>
+            }
         </MList>
     </MNavigationDrawer>
 
-    <MMain>
-        <MContainer Fluid>
-            <MErrorHandler>
-                @Body
-            </MErrorHandler>
-        </MContainer>
+    <MMain Class="[&:not(.app--sized)]:pl-[300px!important]">
+        <MErrorHandler>
+            @Body
+        </MErrorHandler>
     </MMain>
 </MApp>
 
 @code {
 
-    private bool? _drawer;
+    private class RouteItem
+    {
+        public required string Path { get; set; }
+        public required string Name { get; set; }
+        public string? Icon { get; set; }
+    }
+
+    private const string? NavTitle = "Blazor练习项目";
+    private string? _barIcon, _barTitle;
+
+    private readonly List<RouteItem> _routePathDefinitions =
+    [
+        new() { Path = "/", Name = "首页", Icon = "mdi-home" },
+        new() { Path = "/counter", Name = "计数器", Icon = "mdi-plus" },
+    ];
+
+    // 生命钩子，函数是固定写法，必须是这个名，覆写这个函数来在组件初始化时做一些事
+    protected override void OnInitialized()
+    {
+        UpdateBarInfo();
+        // 绑定事件，类似于中间件，这个事件会在路由发生变化时触发
+        NavigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateBarInfo();
+    }
+
+    private void UpdateBarInfo()
+    {
+        var realUri = NavigationManager.Uri[(NavigationManager.BaseUri.Length - 1)..];
+        var routeObj = _routePathDefinitions.FirstOrDefault(x => x.Path == realUri);
+        if (routeObj != null)
+        {
+            _barTitle = routeObj.Name;
+            _barIcon = routeObj.Icon;
+        }
+        // 通知Blazor重新渲染组件
+        StateHasChanged();
+    }
 
 }
