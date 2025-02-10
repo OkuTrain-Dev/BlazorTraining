@@ -1,0 +1,14 @@
+{
+  "scripts": {
+    "buildcss":"postcss wwwroot/css/site.css -o wwwroot/css/site.min.css",
+    "watchcss":"nodemon --watch . --ext css,html,js,ts,jsx,tsx,razor,cshtml --exec \"npm run buildcss\""
+  },
+  "dependencies": {
+    "@unocss/postcss": "^65.4.3",
+    "@unocss/reset": "^65.4.3",
+    "cssnano": "^7.0.6",
+    "nodemon": "^3.1.9",
+    "postcss-cli": "^11.0.0",
+    "unocss": "^65.4.3"
+  }
+}

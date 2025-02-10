@@ -1,4 +1,5 @@
 using BlazorTraining.Data;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,16 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+var resetPath = Path.Combine(Directory.GetCurrentDirectory(), "node_modules/@unocss/reset");
+var resetProvider = new PhysicalFileProvider(resetPath);
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = resetProvider,
+    RequestPath = "/reset"
+});
+
 
 app.UseHttpsRedirection();
 
