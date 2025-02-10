@@ -1,19 +1,23 @@
 ﻿@page "/counter"
 
-<PageTitle>Counter</PageTitle>
-
-<h1>Counter</h1>
-
-<p role="status">Current count: @currentCount</p>
-
-<MButton Color="primary" OnClick="IncrementCount">Click me</MButton>
+<div class="h-full w-full flex justify-center items-center">
+    <MImage Class="w-full h-full fixed" Src="images/64495434_p0.jpg"></MImage>
+    <MCard
+        Class="border-none w-400px h-300px p-10 shadow-xl backdrop-blur-md bg-white bg-op-30 shadow-gray-5 shadow-op-50">
+        <MCardTitle Class="justify-center text-white font-bold text-2xl">Counter</MCardTitle>
+        <MCardText Class="flex flex-col">
+            <div class="mb-10 text-white">Count: @_currentCount</div>
+            <MButton Elevation="0" OnClick="IncrementCount" Class="bg-white bg-op-30 text-white">+1</MButton>
+        </MCardText>
+    </MCard>
+</div>
 
 @code {
-    private int currentCount = 0;
+    private int _currentCount;
 
     private void IncrementCount()
     {
-        currentCount++;
+        _currentCount++;
     }
 
 }
