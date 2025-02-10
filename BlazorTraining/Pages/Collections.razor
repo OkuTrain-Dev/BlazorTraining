@@ -1,0 +1,74 @@
+﻿@page "/collections"
+@using System.Text.RegularExpressions
+@using BlazorTraining.Components.Collections
+@inject IPopupService PopupService
+
+<div class="h-full flex justify-center items-center">
+    <MImage Class="w-full h-full fixed" Src="images/84179374_p0.png"></MImage>
+    <MCard
+        Class="border-none bg-white bg-op-70 backdrop-blur-md rounded-xl! min-h-700px min-w-850px w-70% h-70% p-10 shadow-xl shadow-gray-6 shadow-op-20">
+        <MCardTitle Class="justify-start font-bold text-2xl">Popular collections</MCardTitle>
+        <MCardText Class="h-full">
+            <div class="flex mb-6">
+                @foreach (var item in _tags)
+                {
+                    <div @onclick="() => HandleTagsClick(item)"
+                         class="bg-white bg-op-50 rounded-xl! p-2 mr-2 transition-colors hover:bg-op-100">@item</div>
+                }
+            </div>
+
+            <div class="flex flex-wrap overflow-y-auto h-80% justify-center">
+                @foreach (var item in _collections)
+                {
+                    <div @onclick="() => HandleCardClick(item.Title,item.Likes,item.ImgSrc)">
+                        <Card Params="item"></Card>
+                    </div>
+                }
+            </div>
+        </MCardText>
+    </MCard>
+</div>
+
+@code {
+    private readonly List<string> _tags = ["Profile", "New York", "Relaxing", "Person", "Fashion"];
+    private const string ItemImgPathPrefix = "images/";
+
+    public class CollectionsItems
+    {
+        public required string Title { get; init; }
+        public int Likes { get; init; }
+        public string? ImgSrc { get; init; }
+    }
+
+    private readonly List<CollectionsItems> _collections =
+    [
+        new() { Title = "Hotaru", Likes = 161701, ImgSrc = $"{ItemImgPathPrefix}64495434_p0.jpg" },
+        new() { Title = "夕陽を背に", Likes = 11675, ImgSrc = $"{ItemImgPathPrefix}70336750_p0.png" },
+        new() { Title = "雪月花", Likes = 6176, ImgSrc = $"{ItemImgPathPrefix}73280293_p0.jpg" },
+        new() { Title = "幕開け", Likes = 5182, ImgSrc = $"{ItemImgPathPrefix}74621191_p0.jpg" },
+        new() { Title = "Novelism", Likes = 30744, ImgSrc = $"{ItemImgPathPrefix}84179374_p0.png" },
+        new() { Title = "夕刻の街", Likes = 29547, ImgSrc = $"{ItemImgPathPrefix}84269486_p0.png" },
+        new() { Title = "帰り道、夕焼け", Likes = 3293, ImgSrc = $"{ItemImgPathPrefix}88011960_p0.jpg" }
+    ];
+
+    private static string ConvertLocalImgSrcToPixivSrc(string? imgSrc)
+    {
+        if (imgSrc == null) return "无图片";
+        const string pixivUriPrefix = "https://pixiv.net/artworks/";
+        const string searchImgIdRegex = @"images/([0-9]*?)_.*";
+        var imgId = Regex.Match(imgSrc, searchImgIdRegex).Groups[1].Value;
+        return $"{pixivUriPrefix}{imgId}";
+    }
+
+    private Task HandleCardClick(string title, int likes, string? imgSrc)
+    {
+        return PopupService.EnqueueSnackbarAsync($"你点击了卡片~ 卡片标题为：{title}，卡片点赞数为:{likes}，" +
+                                                 $"卡片图片Pixiv地址为：{ConvertLocalImgSrcToPixivSrc(imgSrc)}", AlertTypes.Success);
+    }
+
+    private Task HandleTagsClick(string tag)
+    {
+        return PopupService.EnqueueSnackbarAsync($"你点击了标签~ 标签为：{tag}", AlertTypes.Success);
+    }
+
+}

@@ -1,0 +1,24 @@
+﻿@using BlazorTraining.Pages
+<MCard Class="w-380px h-380px p-5 bg-white bg-op-90 mr-8 mb-8 rounded-xl! shadow-none hover:shadow-xl transition-all">
+    <div class="grid gap-3">
+        <div class="overflow-hidden rounded-xl!">
+            <MImage Class="w-full h-200px" Src="@Params.ImgSrc"></MImage>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+            <div class="bg-gray-3 rounded-xl! h-80px"></div>
+            <div class="bg-gray-2 rounded-xl! h-80px"></div>
+            <div class="bg-gray-1 rounded-xl! h-80px"></div>
+        </div>
+        <div class="flex justify-between">
+            <div>@Params.Title</div>
+            <div>
+                <span class="mr-1">@Params.Likes</span>
+                <span>❤️</span>
+            </div>
+        </div>
+    </div>
+</MCard>
+
+@code {
+    [Parameter, EditorRequired] public required Collections.CollectionsItems Params { get; set; }
+}

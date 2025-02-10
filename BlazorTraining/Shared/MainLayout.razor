@@ -3,15 +3,7 @@
 
 <PageTitle>Blazor练习项目</PageTitle>
 
-<MApp Id="app" Class="*:font-sans">
-    <MAppBar App Elevation="0" Class="bg-white border-b border-solid border-gray-200 [&:not(.app--sized)]:left-[300px!important]">
-        @if (!string.IsNullOrEmpty(_barIcon))
-        {
-            <MIcon Class="text-2xl mr-2 font-bold text-gray-800">@_barIcon</MIcon>
-        }
-        <MToolbarTitle>@_barTitle</MToolbarTitle>
-    </MAppBar>
-
+<MApp Id="app" Class="*:font-sans w-full h-screen overflow-hidden">
     <MNavigationDrawer App Permanent Width="300" Floating Class="border-r border-solid border-gray-200 p-4">
         <div class="text-xl text-center font-bold py-4">@NavTitle</div>
         <MList Nav Routable>
@@ -30,20 +22,31 @@
         </MList>
     </MNavigationDrawer>
 
-    <MMain Class="[&:not(.app--sized)]:pl-[300px!important]">
-        <MErrorHandler>
-            @Body
-        </MErrorHandler>
-    </MMain>
+    <div class="flex flex-col">
+        <MAppBar App Elevation="0"
+                 Class="bg-white border-b border-solid border-gray-200 [&:not(.app--sized)]:left-[300px!important]">
+            @if (!string.IsNullOrEmpty(_barIcon))
+            {
+                <MIcon Class="text-2xl mr-2 font-bold text-gray-800">@_barIcon</MIcon>
+            }
+            <MToolbarTitle>@_barTitle</MToolbarTitle>
+        </MAppBar>
+
+        <MMain Class="[&:not(.app--sized)]:pl-[300px!important] h-[calc(100vh-64px)]">
+            <MErrorHandler>
+                @Body
+            </MErrorHandler>
+        </MMain>
+    </div>
 </MApp>
 
 @code {
 
     private class RouteItem
     {
-        public required string Path { get; set; }
-        public required string Name { get; set; }
-        public string? Icon { get; set; }
+        public required string Path { get; init; }
+        public required string Name { get; init; }
+        public string? Icon { get; init; }
     }
 
     private const string? NavTitle = "Blazor练习项目";
@@ -53,6 +56,7 @@
     [
         new() { Path = "/", Name = "首页", Icon = "mdi-home" },
         new() { Path = "/counter", Name = "计数器", Icon = "mdi-plus" },
+        new() { Path = "/collections", Name = "收藏列表", Icon = "mdi-star" },
     ];
 
     // 生命钩子，函数是固定写法，必须是这个名，覆写这个函数来在组件初始化时做一些事
@@ -77,6 +81,7 @@
             _barTitle = routeObj.Name;
             _barIcon = routeObj.Icon;
         }
+
         // 通知Blazor重新渲染组件
         StateHasChanged();
     }
