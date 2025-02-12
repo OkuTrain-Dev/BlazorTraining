@@ -8,5 +8,8 @@ export default defineConfig({
         presetWind({
             important: "#app"
         })
-    ]
+    ],
+    shortcuts: {
+        'custom-masa-table': '[&_i.mdi]:before:text-gray-5 [&_th]:border [&_td]:border [&_*]:text-gray-6 [&_*]:border-gray-2 [&_*]:transition-all'
+    }
 })

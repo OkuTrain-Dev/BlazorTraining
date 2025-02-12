@@ -1,0 +1,194 @@
+﻿@page "/coffee"
+@using System.ComponentModel.DataAnnotations
+@inject IPopupService PopupService
+
+<div class="h-full flex justify-center items-center">
+    <MImage Class="w-full h-full fixed" Src="images/88011960_p0.jpg"></MImage>
+    <MCard Elevation="0" Class="border-none rounded-md!">
+        <MCardText Class="h-full w-full">
+            <div class="flex mb-2">
+                <MDialog @bind-value="_showDataAddDialog" MaxWidth="500" OnOutsideClick="ResetForm">
+                    <ActivatorContent>
+                        <MButton Class="mr-2" Elevation="0" @attributes="@context.Attrs">添加数据</MButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MCard>
+                            <MCardTitle>
+                                <div>添加数据</div>
+                            </MCardTitle>
+                            <MCardText>
+                                <MForm AutoLabel Model="_formCoffeeItem" ValidateOn="ValidateOn.Blur"
+                                       @ref="_addDataForm"
+                                       OnValidSubmit="AddDataHandle">
+                                    <MTextField Outlined @bind-value="_formCoffeeItem.Brand"></MTextField>
+                                    <MTextField Outlined @bind-value="_formCoffeeItem.Name"></MTextField>
+                                    <MTextField Outlined @bind-value="_formCoffeeItem.MinCaffeine" Type="number"
+                                                NumberProps="@(prop => { prop.Step = 0.01m; })"></MTextField>
+                                    <MTextField Outlined @bind-value="_formCoffeeItem.MaxCaffeine" Type="number"
+                                                NumberProps="@(prop => { prop.Step = 0.01m; })"></MTextField>
+                                    <MButton Type="submit" Class="primary" Elevation="0">确认添加
+                                    </MButton>
+                                </MForm>
+                            </MCardText>
+                        </MCard>
+                    </ChildContent>
+                </MDialog>
+                <MDialog @bind-value="_showDataDeleteDialog" MaxWidth="500"
+                         OnOutsideClick="@(() => DeleteDataHandler(DeleteDialogSelect.Cancel))">
+                    <ActivatorContent>
+                        <MButton Class="mr-2" Elevation="0" @attributes="@context.Attrs">删除数据</MButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MCard>
+                            <MCardTitle>删除确认</MCardTitle>
+                            <MCardText>
+                                <div class="pb-4">你确定要删除这些数据吗？</div>
+                                <div>
+                                    <MButton Elevation="0" Class="mr-2" OnClick="@(() => DeleteDataHandler(DeleteDialogSelect.Cancel))">取消
+                                    </MButton>
+                                    <MButton Elevation="0" Class="primary" OnClick="@(() => DeleteDataHandler(DeleteDialogSelect.Confirm))">确定
+                                    </MButton>
+                                </div>
+                            </MCardText>
+                        </MCard>
+                    </ChildContent>
+                </MDialog>
+
+            </div>
+            @* 自定义表格样式，规则写在unocss的配置文件里 *@
+            <MDataTable Headers="_headers" Items="_coffeeData" ItemsPerPage="999" HideDefaultFooter Dense Stripe
+                        ShowSelect ItemKey="@(item => item.Id.ToString()!)" @bind-Selected="_tableSelected"
+                        Class="custom-masa-table"></MDataTable>
+        </MCardText>
+    </MCard>
+</div>
+
+@code {
+
+    public class CoffeeItem
+    {
+        public int? Id { get; init; }
+        public required string Brand { get; set; }
+        public required string Name { get; set; }
+        public double MinCaffeine { get; set; }
+        public double MaxCaffeine { get; set; }
+    }
+
+    public class FormCoffeeItem
+    {
+        public int? Id { get; init; }
+
+        [Required(ErrorMessage = "品牌不能为空！")]
+        [Display(Name = "品牌")]
+        public string? Brand { get; set; }
+
+        [Required(ErrorMessage = "名称不能为空！")]
+        [Display(Name = "名称")]
+        public string? Name { get; set; }
+
+        [Display(Name = "最小咖啡因")] public double MinCaffeine { get; set; }
+
+        [Display(Name = "最大咖啡因")] public double MaxCaffeine { get; set; }
+    }
+
+    private readonly IEnumerable<DataTableHeader<CoffeeItem>> _headers =
+    [
+        new() { Text = "#", Value = nameof(CoffeeItem.Id) },
+        new() { Text = "品牌", Value = nameof(CoffeeItem.Brand) },
+        new() { Text = "名称", Value = nameof(CoffeeItem.Name) },
+        new() { Text = "最小咖啡因", Value = nameof(CoffeeItem.MinCaffeine) },
+        new() { Text = "最大咖啡因", Value = nameof(CoffeeItem.MaxCaffeine) },
+    ];
+
+
+    private readonly List<CoffeeItem> _coffeeData =
+    [
+        new() { Id = 0, Brand = "AIRBAG COFFEE", Name = "美式咖啡", MinCaffeine = 388, MaxCaffeine = 388 },
+        new() { Id = 1, Brand = "AIRBAG COFFEE", Name = "香草拿铁", MinCaffeine = 116.1, MaxCaffeine = 116.1 },
+        new() { Id = 2, Brand = "AIRBAG COFFEE", Name = "拿铁", MinCaffeine = 117.94, MaxCaffeine = 117.94 },
+        new() { Id = 3, Brand = "COSTA 咖啡", Name = "香草拿铁", MinCaffeine = 103.66, MaxCaffeine = 103.66 },
+        new() { Id = 4, Brand = "COSTA 咖啡", Name = "拿铁", MinCaffeine = 107.58, MaxCaffeine = 107.58 },
+        new() { Id = 5, Brand = "COSTA 咖啡", Name = "美式咖啡", MinCaffeine = 188.73, MaxCaffeine = 188.73 },
+        new() { Id = 6, Brand = "COSTA 咖啡", Name = "卡摩", MinCaffeine = 190, MaxCaffeine = 395 },
+        new() { Id = 7, Brand = "COSTA 咖啡", Name = "卡布奇诺", MinCaffeine = 185, MaxCaffeine = 370 },
+        new() { Id = 8, Brand = "COSTA 咖啡", Name = "澳白", MinCaffeine = 92, MaxCaffeine = 277 },
+        new() { Id = 9, Brand = "COSTA 咖啡", Name = "告尔多咖啡", MinCaffeine = 185, MaxCaffeine = 370 },
+        new() { Id = 10, Brand = "M Stand", Name = "拿铁", MinCaffeine = 185, MaxCaffeine = 200 },
+        new() { Id = 11, Brand = "M Stand", Name = "澳白", MinCaffeine = 185, MaxCaffeine = 185 },
+        new() { Id = 12, Brand = "M Stand", Name = "美式", MinCaffeine = 185, MaxCaffeine = 200 },
+        new() { Id = 13, Brand = "M Stand", Name = "伯爵拿铁", MinCaffeine = 185, MaxCaffeine = 200 }
+    ];
+
+    private bool _showDataAddDialog;
+    private bool _showDataDeleteDialog;
+    private MForm? _addDataForm;
+    private FormCoffeeItem _formCoffeeItem = null!;
+    private IEnumerable<string> _tableSelected = [];
+
+    private enum DeleteDialogSelect
+    {
+        Cancel,
+        Confirm
+    }
+
+    protected override void OnInitialized()
+    {
+        _formCoffeeItem = CreateNewFormCoffeeItem();
+    }
+
+    private FormCoffeeItem CreateNewFormCoffeeItem()
+    {
+        return new FormCoffeeItem
+        {
+            Id = _coffeeData.Last().Id + 1
+        };
+    }
+
+    private void ResetForm()
+    {
+        _formCoffeeItem = CreateNewFormCoffeeItem();
+        _addDataForm?.ResetValidation();
+        _showDataAddDialog = false;
+    }
+
+    private async Task AddDataHandle()
+    {
+        _coffeeData.Add(new CoffeeItem
+        {
+            Id = _formCoffeeItem.Id,
+            Brand = _formCoffeeItem.Brand!,
+            Name = _formCoffeeItem.Name!,
+            MinCaffeine = _formCoffeeItem.MinCaffeine,
+            MaxCaffeine = _formCoffeeItem.MaxCaffeine
+        });
+        await PopupService.EnqueueSnackbarAsync("添加成功", AlertTypes.Success, true, 2000);
+        ResetForm();
+    }
+
+    private async Task DeleteDataHandler(DeleteDialogSelect select)
+    {
+        switch (select)
+        {
+            case DeleteDialogSelect.Cancel:
+                await PopupService.EnqueueSnackbarAsync("操作已取消！", AlertTypes.None, true, 2000);
+                break;
+            case DeleteDialogSelect.Confirm:
+                var tableSelected = _tableSelected.Select(int.Parse).ToList();
+                if (tableSelected.Count == 0)
+                {
+                    await PopupService.EnqueueSnackbarAsync("未选择任何数据！", AlertTypes.Error, true, 2000);
+                    break;
+                }
+
+                _coffeeData.RemoveAll(item => tableSelected.Contains((int)item.Id!));
+                await PopupService.EnqueueSnackbarAsync($"删除成功~ 已成功删除{tableSelected.Count}条数据", AlertTypes.Success, true, 2000);
+                _tableSelected = [];
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(select), select, null);
+        }
+
+        if (_showDataDeleteDialog) _showDataDeleteDialog = false;
+    }
+
+}
