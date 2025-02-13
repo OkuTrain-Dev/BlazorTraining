@@ -1,0 +1,202 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@inject IPopupService PopupService
+
+<div class="h-full flex justify-center items-center">
+    <MImage Class="w-full h-full fixed" Src="images/visual-ex.png"></MImage>
+    <MImage Class="w-full h-full fixed" Style="@($"opacity:{_lightBgOpacity}")" Src="images/visual.png"></MImage>
+
+    <MCard Elevation="0" Class="rounded-md! p-4 w-450px">
+        <MCardText Class="flex flex-col">
+            <div class="text-xl font-bold text-gray-800 text-center mb-6">登陆系统</div>
+            @if (_states == AuthInterfaceStates.Login)
+            {
+                <MForm AutoLabel Model="_loginFormItem" ValidateOn="ValidateOn.Blur" @ref="_loginForm"
+                       OnValidSubmit="LoginHandler">
+                    <MTextField Class="text-sm" Outlined @bind-value="_loginFormItem.Email"></MTextField>
+                    <MTextField Class="text-sm" Outlined @bind-value="_loginFormItem.Password"
+                                Type="password"></MTextField>
+                    <MButton Type="submit" Elevation="0" Block>登陆</MButton>
+                </MForm>
+                <MDivider Class="my-6"/>
+                <div class="flex text-sm text-gray-300 justify-center">
+                    <span>没有账户？</span>
+                    <span class="text-blue-4 cursor-pointer"
+                          @onclick="@(() => ChangeState(AuthInterfaceStates.Register))">点我注册</span>
+                </div>
+            }
+            else
+            {
+                <MForm AutoLabel Model="_registerFormItem" ValidateOn="ValidateOn.Blur" @ref="_registerForm"
+                       OnValidSubmit="RegisterHandler">
+                    <MTextField Class="text-sm" Outlined @bind-value="_registerFormItem.Email"></MTextField>
+                    <MTextField Class="text-sm" Outlined @bind-value="_registerFormItem.Name"></MTextField>
+                    <MTextField Class="text-sm" Outlined @bind-value="_registerFormItem.Password"
+                                Type="password"></MTextField>
+                    <MButton Type="submit" Elevation="0" Block>注册</MButton>
+                </MForm>
+                <MDivider Class="my-6"/>
+                <div class="flex text-sm text-gray-300 justify-center">
+                    <span>已有账户？</span>
+                    <span class="text-blue-4 cursor-pointer" @onclick="@(() => ChangeState(AuthInterfaceStates.Login))">点我登陆</span>
+                </div>
+            }
+            <div class="text-center text-sm text-gray-200 mt-2 cursor-pointer" @onclick="ViewAllUserHandler">
+                向控制台输出所有已注册的用户
+            </div>
+        </MCardText>
+    </MCard>
+</div>
+
+@code {
+
+    public class User
+    {
+        public required string Email { get; init; }
+        public required string Name { get; init; }
+        public required string Password { get; init; }
+    }
+
+    private class LoginFormItem
+    {
+        [Required(ErrorMessage = "登陆邮箱不能为空！")]
+        [EmailAddress(ErrorMessage = "请输入正确格式的邮箱！")]
+        [Display(Name = "邮箱")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "密码不能为空！")]
+        [MinLength(6, ErrorMessage = "密码至少6个字符！")]
+        [Display(Name = "密码")]
+        public string? Password { get; set; }
+    }
+
+    private class RegisterFormItem
+    {
+        [Required(ErrorMessage = "注册邮箱不能为空！")]
+        [EmailAddress(ErrorMessage = "请输入正确格式的邮箱！")]
+        [Display(Name = "邮箱")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "注册用户名不能为空！")]
+        [MinLength(3, ErrorMessage = "用户名至少3个字符！")]
+        [Display(Name = "用户名")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "密码不能为空！")]
+        [MinLength(6, ErrorMessage = "密码至少6个字符！")]
+        [Display(Name = "密码")]
+        public string? Password { get; set; }
+    }
+
+    private enum AuthInterfaceStates
+    {
+        Login,
+        Register
+    }
+
+    private decimal _lightBgOpacity;
+    private AuthInterfaceStates _states = AuthInterfaceStates.Login;
+    private MForm? _loginForm;
+    private MForm? _registerForm;
+    private readonly LoginFormItem _loginFormItem = new();
+    private readonly RegisterFormItem _registerFormItem = new();
+
+    private void ChangeState(AuthInterfaceStates state)
+    {
+        _registerForm?.Reset();
+        _loginForm?.Reset();
+
+        if (_lightBgOpacity >= 1)
+        {
+            _ = InvokeAsync(() => { ChangeBgOpacity(false).ConfigureAwait(false); });
+        }
+
+        _states = state;
+    }
+
+    private async Task RegisterHandler()
+    {
+        if (_users.Any(x => x.Email == _registerFormItem.Email))
+        {
+            await PopupService.EnqueueSnackbarAsync("该邮箱已被注册！", AlertTypes.Error, true, 2000);
+            return;
+        }
+
+        _users.Add(new User
+        {
+            Email = _registerFormItem.Email!,
+            Name = _registerFormItem.Name!,
+            Password = _registerFormItem.Password!
+        });
+        await PopupService.EnqueueSnackbarAsync("注册成功！请前往登陆~", AlertTypes.Success, true, 2000);
+    }
+
+    private async Task LoginHandler()
+    {
+        var user = _users.FirstOrDefault(x => x.Email == _loginFormItem.Email);
+        if (user == null)
+        {
+            await PopupService.EnqueueSnackbarAsync("未找到该用户！", AlertTypes.Error, true, 2000);
+            return;
+        }
+
+        if (user.Password != _loginFormItem.Password)
+        {
+            await PopupService.EnqueueSnackbarAsync("密码错误！", AlertTypes.Error, true, 2000);
+            return;
+        }
+
+        // 非阻塞方式异步执行动画
+        if (_lightBgOpacity <= 0)
+        {
+            _ = InvokeAsync(() => { ChangeBgOpacity(true).ConfigureAwait(false); });
+        }
+
+        await PopupService.EnqueueSnackbarAsync($"登陆成功！欢迎回来~ 用户: {user.Name}", AlertTypes.Success, true, 2000);
+    }
+
+    private void ViewAllUserHandler()
+    {
+        foreach (var user in _users)
+        {
+            Console.WriteLine($"邮箱: {user.Email}, 用户名: {user.Name}, 密码: {user.Password}");
+        }
+    }
+
+    private async Task ChangeBgOpacity(bool addMode)
+    {
+        const decimal fps = 60;
+        const decimal maxSeconds = 1;
+        const decimal maxFrame = maxSeconds * fps;
+        const decimal onceOpacity = 1 / maxFrame;
+
+        if (addMode)
+        {
+            _lightBgOpacity = 0;
+            for (var i = 0; i < maxFrame; i++)
+            {
+                _lightBgOpacity += onceOpacity;
+                StateHasChanged();
+                await Task.Delay((int)(1000 / fps));
+            }
+        }
+        else
+        {
+            if (_lightBgOpacity <= 0) return;
+
+            _lightBgOpacity = 1;
+            for (var i = 0; i < maxFrame; i++)
+            {
+                _lightBgOpacity -= onceOpacity;
+                StateHasChanged();
+                await Task.Delay((int)(1000 / fps));
+            }
+        }
+    }
+
+    private readonly List<User> _users =
+    [
+        new() { Email = "root@qq.com", Name = "root", Password = "123456" }
+    ];
+
+}
